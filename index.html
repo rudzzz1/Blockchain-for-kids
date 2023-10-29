@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain for Kids</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body style="background-image: url('bg.jpeg'); background-size: cover;"></body>
+    <h1>Blockchain for Kids</h1>
+    <div id="blockchain"></div>
+    <button id="genesisButton" onclick="generateGenesisBlock()">Generate Genesis Block</button>
+    <button id="newBlockButton" onclick="addBlock()" style="display: none;">Create New Block</button>
+    <script>
+        // Simple Block class
+        class Block {
+            constructor(index, previousHash, timestamp, data) {
+                this.index = index;
+                this.previousHash = previousHash;
+                this.timestamp = timestamp;
+                this.data = data;
+                this.hash = this.calculateHash();
+            }
+
+            calculateHash() {
+                return `${this.index}-${this.previousHash}-${this.timestamp}-${this.data}`.toString();
+            }
+        }
+
+        let blockchain = [];
+        const synth = window.speechSynthesis;
+
+        function generateGenesisBlock() {
+            const genesisBlock = new Block(0, "0", new Date().toUTCString(), "Genesis Block");
+            blockchain.push(genesisBlock);
+
+            // Update the display
+            updateBlockchainDisplay();
+            explainGenesisBlock();
+        }
+
+        function speak(text, line) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Get the available voices and select a female voice
+            const voices = synth.getVoices();
+            const femaleVoice = voices.find(voice => voice.name === 'Google UK English Female');
+            
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+
+            synth.speak(utterance);
+
+            utterance.onstart = () => {
+                if (line) {
+                    line.style.backgroundColor = 'yellow'; // Highlight the line with a yellow background
+                }
+            };
+            utterance.onend = () => {
+                if (line) {
+                    line.style.backgroundColor = ''; // Remove the highlight
+                }
+            };
+        }
+
+
+        function explainGenesisBlock() {
+            const genesisButton = document.getElementById("genesisButton");
+            const blockchainDiv = document.getElementById("blockchain");
+
+            speak("This is the Genesis Block. It's the very first block in the blockchain.", blockchainDiv.children[0]);
+            speak("The Genesis Block has no previous block because it's the beginning.", blockchainDiv.children[1]);
+            speak("The timestamp tells us when the block was created.", blockchainDiv.children[2]);
+            speak("The data can be anything; in this case, it's 'Genesis Block'.", blockchainDiv.children[3]);
+
+            genesisButton.style.display = "none";
+            document.getElementById("newBlockButton").style.display = "block";
+        }
+
+        function addBlock() {
+            const previousBlock = blockchain[blockchain.length - 1];
+            const newIndex = previousBlock.index + 1;
+            const newTimestamp = new Date().toUTCString();
+            const newData = "Block #" + newIndex;
+            const newBlock = new Block(newIndex, previousBlock.hash, newTimestamp, newData);
+            blockchain.push(newBlock);
+
+            // Update the display
+            updateBlockchainDisplay();
+            explainBlock(newBlock);
+        }
+
+        function explainBlock(block) {
+            const blockchainDiv = document.getElementById("blockchain");
+            const blockDiv = blockchainDiv.children[block.index + 4]; // Offset by 4 to account for Genesis Block and zero-based index
+
+            speak(`This is Block #${block.index}. It comes after the Genesis Block.`, blockDiv);
+            speak(`The Previous Hash is the unique code of the previous block: ${block.previousHash}`, blockDiv);
+            speak(`The timestamp shows when this block was added: ${block.timestamp}`, blockDiv);
+            speak(`Data can be anything, like 'Block #${block.index}'`, blockDiv);
+        }
+
+        function updateBlockchainDisplay() {
+            const blockchainDiv = document.getElementById("blockchain");
+            blockchainDiv.innerHTML = "";
+
+            blockchain.forEach((block, index) => {
+                const blockDiv = document.createElement("div");
+                blockDiv.className = "block";
+                blockDiv.innerHTML = `
+                    <p><strong>Block #${block.index}</strong></p>
+                    <img src="giraffe${block.index}.gif" alt="Giraffe Image" class="giraffe">
+                    <p>Previous Hash: ${block.previousHash}</p>
+                    <p>Timestamp: ${block.timestamp}</p>
+                    <p>Data: ${block.data}</p>
+                `;
+
+                if (index > 0) {
+                    const arrow = document.createElement("div");
+                    arrow.className = "arrow";
+                    blockDiv.appendChild(arrow);
+                }
+
+                blockchainDiv.appendChild(blockDiv);
+            });
+        }
+    </script>
+</body>
+</html>
